@@ -19,10 +19,11 @@ import (
 
 // --- Models ---
 type Milestone struct {
-	ID          string  `json:"id"`
-	Description string  `json:"description"`
-	Amount      float64 `json:"amount"`
-	Status      string  `json:"status"` // pending, submitted, approved, disputed
+	ID                 string  `json:"id"`
+	Description        string  `json:"description"`
+	Amount             float64 `json:"amount"`
+	ClientInstructions string  `json:"client_instructions"` // Custom rules for the AI
+	Status             string  `json:"status"`              // pending, submitted, approved, disputed
 }
 
 type AuditLog struct {
@@ -188,6 +189,8 @@ func evaluateMilestoneHandler(c *fiber.Ctx) error {
 
 	var req struct {
 		SubmittedWork string `json:"submitted_work"`
+		FileName      string `json:"file_name"`
+		FileContent   string `json:"file_content"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
@@ -216,7 +219,10 @@ func evaluateMilestoneHandler(c *fiber.Ctx) error {
 	// Call AI Service
 	aiReq := map[string]string{
 		"milestone_description": milestone.Description,
+		"client_instructions":   milestone.ClientInstructions,
 		"submitted_work":        req.SubmittedWork,
+		"file_name":             req.FileName,
+		"file_content":          req.FileContent,
 	}
 	payloadBytes, _ := json.Marshal(aiReq)
 

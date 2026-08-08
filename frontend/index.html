@@ -37,6 +37,7 @@
           <span class="currency">₹</span>
           <input type="number" id="amount" placeholder="0.00" min="0">
         </div>
+        <textarea id="clientRules" placeholder="Enter specific rules or acceptance criteria for the AI to enforce..." rows="3" style="margin-top: 10px; width: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; padding: 12px; font-family: inherit; font-size: 14px; margin-bottom: 15px;"></textarea>
         <button class="btn btn-primary" onclick="deposit()" id="btn-deposit" aria-label="Deposit funds into escrow">
           <span class="btn-text">Lock in Escrow</span>
           <span class="loader hidden" aria-hidden="true"></span>
@@ -51,6 +52,8 @@
         <p class="card-desc">Freelancer submits work. Our AI Judge reviews quality instantly.</p>
         
         <textarea id="work" placeholder="Paste GitHub link, document URL, or work description..." rows="4"></textarea>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px; margin-top: 5px;">Optional: Upload code or text file for deep AI analysis.</p>
+        <input type="file" id="fileUpload" style="margin-bottom: 15px; width: 100%; color: var(--text-muted); font-size: 14px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
         <button class="btn btn-secondary" onclick="checkAI()" id="btn-ai" aria-label="Run AI Evaluation on work">
           <span class="btn-text">Run AI Evaluation</span>
           <span class="loader hidden" aria-hidden="true"></span>

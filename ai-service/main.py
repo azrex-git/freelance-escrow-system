@@ -31,7 +31,10 @@ class DisputeRequest(BaseModel):
 
 class EvaluateRequest(BaseModel):
     milestone_description: str
+    client_instructions: str = ""
     submitted_work: str
+    file_name: str = ""
+    file_content: str = ""
 
 class ProjectIdeaRequest(BaseModel):
     project_description: str
@@ -82,15 +85,21 @@ def evaluate_work(request: EvaluateRequest):
     try:
         system_prompt = f"""
         You are an AI Judge for a freelance platform.
-        Evaluate the following submitted work against the milestone description and determine its quality/completeness:
+        Evaluate the following submitted work against the milestone description and the client's explicit rules/instructions.
         
         Milestone Description: {request.milestone_description}
-        Submitted Work: {request.submitted_work}
+        Client Rules & Instructions: {request.client_instructions if request.client_instructions else 'None'}
+        Submitted Work Link/Text: {request.submitted_work}
+        Uploaded File Name: {request.file_name if request.file_name else 'None'}
+        Uploaded File Content:
+        ```
+        {request.file_content if request.file_content else 'None'}
+        ```
         
         Return ONLY valid JSON exactly matching this format:
         {{
             "match_percentage": <integer 0-100>,
-            "feedback": "<detailed constructive feedback>",
+            "feedback": "<detailed constructive feedback based on the rules>",
             "confidence_score": <integer 0-100>,
             "behavioral_analysis": {{
                 "client_professionalism": <integer 0-100>,
@@ -102,10 +111,10 @@ def evaluate_work(request: EvaluateRequest):
             ]
         }}
         
-        If the work is a Github URL, assume it's valid code but penalize slightly if there is no description.
-        If the work is just text, evaluate its completeness based on the milestone.
+        If a file is provided, thoroughly analyze its code/content.
+        If the work violates ANY of the Client Rules & Instructions, penalize the match_percentage heavily.
         Provide a confidence score on how sure you are about this evaluation.
-        Infer professionalism scores from the way the submitted work was presented (e.g. detailed and polite vs abrupt).
+        Infer professionalism scores from the way the submitted work was presented.
         Provide 1-2 points in the evidence summary justifying the evaluation.
         """
         response = client.models.generate_content(

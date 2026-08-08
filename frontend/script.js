@@ -32,6 +32,7 @@ const setLoading = (btnId, isLoading) => {
 async function deposit() {
   const amountInput = document.getElementById("amount");
   const amount = parseFloat(amountInput.value);
+  const clientRules = document.getElementById("clientRules").value;
   
   if (isNaN(amount) || amount <= 0) {
     showMsg("escrowStatus", "Please enter a valid amount.", "error");
@@ -48,7 +49,11 @@ async function deposit() {
       body: JSON.stringify({ 
         client_id: "client1",
         freelancer_id: "freelancer1",
-        milestones: [{ description: "Main Deliverable", amount: amount }]
+        milestones: [{ 
+          description: "Main Deliverable", 
+          amount: amount,
+          client_instructions: clientRules
+        }]
       })
     });
     
@@ -84,24 +89,44 @@ async function deposit() {
 
 async function checkAI() {
   const work = document.getElementById("work").value;
+  const fileInput = document.getElementById("fileUpload");
   
   if (!isEscrowActive) {
     showMsg("aiResult", "No active escrow. Client must deposit first.", "warning");
     return;
   }
   
-  if (!work.trim()) {
-    showMsg("aiResult", "Please provide work details or a link.", "error");
+  if (!work.trim() && (!fileInput.files || fileInput.files.length === 0)) {
+    showMsg("aiResult", "Please provide work details or upload a file.", "error");
     return;
   }
 
   setLoading('btn-ai', true);
+  
+  let fileName = "";
+  let fileContent = "";
+  
+  if (fileInput.files && fileInput.files.length > 0) {
+    const file = fileInput.files[0];
+    fileName = file.name;
+    try {
+      fileContent = await file.text();
+    } catch (e) {
+      showMsg("aiResult", "Error reading file. Only text/code files are supported in this demo.", "error");
+      setLoading('btn-ai', false);
+      return;
+    }
+  }
 
   try {
     const response = await fetch(`/api/escrow/${currentEscrowId}/milestone/${currentMilestoneId}/evaluate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ submitted_work: work })
+      body: JSON.stringify({ 
+        submitted_work: work,
+        file_name: fileName,
+        file_content: fileContent
+      })
     });
     
     const data = await response.json().catch(() => ({}));
