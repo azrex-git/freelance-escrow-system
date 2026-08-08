@@ -1,6 +1,8 @@
 let escrowAmount = 0;
 let reputation = 4.5;
 let isEscrowActive = false;
+let currentEscrowId = "";
+let currentMilestoneId = "";
 
 // Helpers
 const showMsg = (id, msg, type = 'success') => {
@@ -43,10 +45,18 @@ async function deposit() {
     const response = await fetch('/api/escrow', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: amount })
+      body: JSON.stringify({ 
+        client_id: "client1",
+        freelancer_id: "freelancer1",
+        milestones: [{ description: "Main Deliverable", amount: amount }]
+      })
     });
     
     if (response.ok) {
+      const data = await response.json();
+      currentEscrowId = data.id;
+      currentMilestoneId = data.milestones[0].id;
+      
       // Simulate real world wait
       setTimeout(() => {
         escrowAmount = amount;
@@ -88,10 +98,10 @@ async function checkAI() {
   setLoading('btn-ai', true);
 
   try {
-    const response = await fetch('/api/escrow/evaluate', {
+    const response = await fetch(`/api/escrow/${currentEscrowId}/milestone/${currentMilestoneId}/evaluate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ work_description: work })
+      body: JSON.stringify({ submitted_work: work })
     });
     
     const data = await response.json().catch(() => ({}));

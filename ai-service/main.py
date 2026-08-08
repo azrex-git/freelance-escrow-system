@@ -1,16 +1,14 @@
 import os
 import json
-import google.generativeai as genai
+from google import genai
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-model = genai.GenerativeModel('gemini-1.5-pro')
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = FastAPI(title="AntiLabs Escrow AI Arbiter")
 
@@ -54,22 +52,24 @@ def generate_milestones(request: ProjectIdeaRequest):
         Total Budget: {request.total_budget}
         
         Assign a portion of the total budget to each milestone based on its complexity.
+        Make sure the total budget across all milestones equals the provided total budget.
         
-        Output ONLY a valid JSON object with no markdown formatting.
-        Format required:
+        Return ONLY valid JSON in the following format:
         {{
             "milestones": [
                 {{
-                    "title": "<short title>",
-                    "description": "<detailed requirement>",
-                    "amount": <float>
+                    "description": "Short description of the milestone",
+                    "amount": 1000
                 }}
             ]
         }}
         """
-        response = model.generate_content(
-            system_prompt,
-            generation_config={"response_mime_type": "application/json"}
+        response = client.models.generate_content(
+            model='gemini-3.6-flash',
+            contents=system_prompt,
+            config=genai.types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
         )
         return json.loads(response.text)
     except Exception as e:
@@ -87,16 +87,33 @@ def evaluate_work(request: EvaluateRequest):
         Milestone Description: {request.milestone_description}
         Submitted Work: {request.submitted_work}
         
-        Output ONLY a valid JSON object with no markdown formatting or extra text.
-        Format required:
+        Return ONLY valid JSON exactly matching this format:
         {{
-            "match_percentage": <int 0-100>,
-            "feedback": "<short string explaining the evaluation>"
+            "match_percentage": <integer 0-100>,
+            "feedback": "<detailed constructive feedback>",
+            "confidence_score": <integer 0-100>,
+            "behavioral_analysis": {{
+                "client_professionalism": <integer 0-100>,
+                "freelancer_professionalism": <integer 0-100>
+            }},
+            "evidence_summary": [
+                "<evidence point 1>",
+                "<evidence point 2>"
+            ]
         }}
+        
+        If the work is a Github URL, assume it's valid code but penalize slightly if there is no description.
+        If the work is just text, evaluate its completeness based on the milestone.
+        Provide a confidence score on how sure you are about this evaluation.
+        Infer professionalism scores from the way the submitted work was presented (e.g. detailed and polite vs abrupt).
+        Provide 1-2 points in the evidence summary justifying the evaluation.
         """
-        response = model.generate_content(
-            system_prompt,
-            generation_config={"response_mime_type": "application/json"}
+        response = client.models.generate_content(
+            model='gemini-3.6-flash',
+            contents=system_prompt,
+            config=genai.types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
         )
         
         result = json.loads(response.text)
@@ -138,9 +155,12 @@ def resolve_dispute(request: DisputeRequest):
         }}
         """
         
-        response = model.generate_content(
-            system_prompt,
-            generation_config={"response_mime_type": "application/json"}
+        response = client.models.generate_content(
+            model='gemini-3.6-flash',
+            contents=system_prompt,
+            config=genai.types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
         )
         result = json.loads(response.text)
         
