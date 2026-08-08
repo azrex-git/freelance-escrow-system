@@ -3,44 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SafeWork - Reputation Escrow</title>
+  <meta name="description" content="SafeWork - A secure, AI-powered freelance escrow system with blockchain reputation.">
+  <title>SafeWork | Web3 Escrow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="background-effects">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+  </div>
+
   <div class="container">
-    <h1>🔒 SafeWork Escrow</h1>
-    <p class="subtitle">No Middleman. No Ghosting. Only Trust.</p>
+    <header class="header">
+      <div class="logo">
+        <span class="icon">🛡️</span>
+        <h1>SafeWork</h1>
+      </div>
+      <p class="subtitle">Trustless Escrow & AI Verification for Modern Freelance</p>
+    </header>
 
-    <!-- BOX 1: DEPOSIT -->
-    <div class="card">
-      <h2>1. Client Deposit</h2>
-      <input type="number" id="amount" placeholder="Enter Amount ₹">
-      <button onclick="deposit()">Lock in Escrow</button>
-      <p id="escrowStatus"></p>
-    </div>
+    <main class="grid-layout">
+      <!-- Step 1: Deposit -->
+      <section class="glass-card" id="step-deposit">
+        <div class="step-badge">1</div>
+        <h2>Secure Funds</h2>
+        <p class="card-desc">Client deposits funds securely into the smart contract.</p>
+        
+        <div class="input-group">
+          <span class="currency">₹</span>
+          <input type="number" id="amount" placeholder="0.00" min="0">
+        </div>
+        <button class="btn btn-primary" onclick="deposit()" id="btn-deposit">
+          <span class="btn-text">Lock in Escrow</span>
+          <span class="loader hidden"></span>
+        </button>
+        <div class="status-msg" id="escrowStatus"></div>
+      </section>
 
-    <!-- BOX 2: AI CHECK -->
-    <div class="card">
-      <h2>2. Freelancer Submit + AI Check</h2>
-      <textarea id="work" placeholder="Paste work link or description" rows="3"></textarea>
-      <button onclick="checkAI()">Check with AI Judge</button>
-      <p id="aiResult"></p>
-    </div>
+      <!-- Step 2: AI Check -->
+      <section class="glass-card" id="step-ai">
+        <div class="step-badge">2</div>
+        <h2>Submit & Verify</h2>
+        <p class="card-desc">Freelancer submits work. Our AI Judge reviews quality instantly.</p>
+        
+        <textarea id="work" placeholder="Paste GitHub link, document URL, or work description..." rows="4"></textarea>
+        <button class="btn btn-secondary" onclick="checkAI()" id="btn-ai">
+          <span class="btn-text">Run AI Evaluation</span>
+          <span class="loader hidden"></span>
+        </button>
+        <div class="status-msg" id="aiResult"></div>
+      </section>
 
-    <!-- BOX 3: RELEASE -->
-    <div class="card">
-      <h2>3. Release Payment</h2>
-      <button onclick="release()">Release from Smart Contract</button>
-      <p id="paymentStatus"></p>
-    </div>
+      <!-- Step 3: Release -->
+      <section class="glass-card" id="step-release">
+        <div class="step-badge">3</div>
+        <h2>Release Payment</h2>
+        <p class="card-desc">Funds are released upon approval, boosting reputation.</p>
+        
+        <button class="btn btn-success" onclick="release()" id="btn-release">
+          <span class="btn-text">Release from Escrow</span>
+          <span class="loader hidden"></span>
+        </button>
+        <div class="status-msg" id="paymentStatus"></div>
+      </section>
 
-    <!-- REPUTATION -->
-    <div class="card rep-card">
-      <h2>⭐ Freelancer Reputation</h2>
-      <h1 id="rep">4.5</h1>
-      <p>Stored on Blockchain. Can't be faked.</p>
-    </div>
-
+      <!-- Reputation Dashboard -->
+      <section class="glass-card rep-card">
+        <div class="rep-header">
+          <h2>Reputation Score</h2>
+          <span class="blockchain-tag">Verified on Chain</span>
+        </div>
+        <div class="score-display">
+          <span class="star">⭐</span>
+          <h1 id="rep">4.5</h1>
+          <span class="max-score">/ 5.0</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="rep-progress" style="width: 90%;"></div>
+        </div>
+        <p class="rep-footer">Top 10% Freelancer</p>
+      </section>
+    </main>
   </div>
   <script src="script.js"></script>
 </body>

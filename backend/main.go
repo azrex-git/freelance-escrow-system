@@ -19,6 +19,9 @@ func main() {
 	app.Use(recover.New()) // Recover from panics to prevent the app from crashing
 	app.Use(logger.New())  // Log HTTP requests
 
+	// Serve Frontend Static Files
+	app.Static("/", "../frontend")
+
 	// Base API route group
 	api := app.Group("/api")
 
