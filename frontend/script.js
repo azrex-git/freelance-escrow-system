@@ -3,6 +3,34 @@ let reputation = 4.5;
 let isEscrowActive = false;
 let currentEscrowId = "";
 let currentMilestoneId = "";
+let userWallet = "";
+let escrowContract = null;
+const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+const contractABI = [
+  "function createEscrow(string escrowId, address freelancer) external payable",
+  "function approveMilestone(string escrowId, uint256 amount) external",
+  "function getReputation(address user) external view returns (uint256)"
+async function initWeb3() {
+  try {
+    // Connect silently to the local Hardhat node
+    const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+    // Hardhat Account #0 private key
+    const privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; 
+    const signer = new ethers.Wallet(privateKey, provider);
+    
+    userWallet = signer.address;
+    escrowContract = new ethers.Contract(contractAddress, contractABI, signer);
+    
+    // Fetch reputation
+    const repScore = await escrowContract.getReputation(userWallet);
+    document.getElementById('rep').innerText = (Number(repScore) / 10).toFixed(1);
+  } catch (e) {
+    console.error("Failed to connect to local Web3 node. Ensure Hardhat is running.", e);
+  }
+}
+
+// Auto-initialize on load
+window.addEventListener('load', initWeb3);
 
 // Helpers
 const showMsg = (id, msg, type = 'success') => {
@@ -34,21 +62,26 @@ async function deposit() {
   const amount = parseFloat(amountInput.value);
   const clientRules = document.getElementById("clientRules").value;
   
+  if (!userWallet || !escrowContract) {
+    showMsg("escrowStatus", "Please wait for blockchain to initialize...", "warning");
+    return;
+  }
+  
   if (isNaN(amount) || amount <= 0) {
     showMsg("escrowStatus", "Please enter a valid amount.", "error");
     return;
   }
 
   setLoading('btn-deposit', true);
-  
+
   try {
-    // API Call to Backend
+    // 1. Create Web2 Escrow tracking on Go Backend
     const response = await fetch('/api/escrow', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        client_id: "client1",
-        freelancer_id: "freelancer1",
+        client_id: userWallet,
+        freelancer_id: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", // Hardhat Account #1 as freelancer mock
         milestones: [{ 
           description: "Main Deliverable", 
           amount: amount,
@@ -62,28 +95,25 @@ async function deposit() {
       currentEscrowId = data.id;
       currentMilestoneId = data.milestones[0].id;
       
-      // Simulate real world wait
-      setTimeout(() => {
-        escrowAmount = amount;
-        isEscrowActive = true;
-        showMsg("escrowStatus", `✅ ₹${escrowAmount} locked in secure smart contract.`, "success");
-        amountInput.value = '';
-        setLoading('btn-deposit', false);
-      }, 800);
-    } else {
-      showMsg("escrowStatus", "Failed to create escrow.", "error");
-      setLoading('btn-deposit', false);
-    }
-  } catch (err) {
-    console.error(err);
-    // Fallback simulation if backend fetch fails
-    setTimeout(() => {
+      // 2. Lock funds in Web3 Smart Contract
+      const tx = await escrowContract.createEscrow(currentEscrowId, "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", {
+        value: ethers.parseEther(amount.toString())
+      });
+      showMsg("escrowStatus", "Waiting for blockchain confirmation...", "success");
+      await tx.wait();
+
       escrowAmount = amount;
       isEscrowActive = true;
-      showMsg("escrowStatus", `✅ ₹${escrowAmount} locked in secure smart contract (Simulated).`, "success");
+      showMsg("escrowStatus", `Escrow Locked! TX: ${tx.hash.substring(0,10)}...`, "success");
       amountInput.value = '';
-      setLoading('btn-deposit', false);
-    }, 1000);
+    } else {
+      showMsg("escrowStatus", "Failed to create Web2 Escrow tracking.", "error");
+    }
+  } catch (error) {
+    console.error(error);
+    showMsg("escrowStatus", "Transaction failed or rejected.", "error");
+  } finally {
+    setLoading('btn-deposit', false);
   }
 }
 
@@ -162,13 +192,16 @@ async function release() {
 
   setLoading('btn-release', true);
 
-  // Simulate Blockchain Transaction
-  setTimeout(() => {
+  try {
+    const tx = await escrowContract.approveMilestone(currentEscrowId, ethers.parseEther(escrowAmount.toString()));
+    showMsg("paymentStatus", "Waiting for blockchain confirmation...", "success");
+    await tx.wait();
+    
     showMsg("paymentStatus", `💸 ₹${escrowAmount} released to freelancer wallet!`, "success");
     
-    // Update Reputation
-    reputation += 0.1;
-    if (reputation > 5.0) reputation = 5.0;
+    // Fetch updated reputation
+    const repScore = await escrowContract.getReputation(userWallet);
+    const newReputation = Number(repScore) / 10;
     
     // Animate reputation change
     const repEl = document.getElementById("rep");
@@ -177,14 +210,17 @@ async function release() {
     repEl.style.transform = "scale(1.3)";
     setTimeout(() => { repEl.style.transform = "scale(1)"; }, 300);
     
-    repEl.innerText = reputation.toFixed(1);
-    progressFill.style.width = `${(reputation / 5) * 100}%`;
+    repEl.innerText = newReputation.toFixed(1);
+    progressFill.style.width = `${(newReputation / 5) * 100}%`;
     
     // Reset state
     escrowAmount = 0;
     isEscrowActive = false;
     showMsg("escrowStatus", "Escrow is now empty.", "warning");
-    
-    setLoading('btn-release', false);
-  }, 2000);
+  } catch (error) {
+    console.error(error);
+    showMsg("paymentStatus", "Failed to release funds from smart contract.", "error");
+  }
+  
+  setLoading('btn-release', false);
 }
