@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeWork - Reputation Escrow</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🔒 SafeWork Escrow</h1>
+    <p class="subtitle">No Middleman. No Ghosting. Only Trust.</p>
+
+    <!-- BOX 1: DEPOSIT -->
+    <div class="card">
+      <h2>1. Client Deposit</h2>
+      <input type="number" id="amount" placeholder="Enter Amount ₹">
+      <button onclick="deposit()">Lock in Escrow</button>
+      <p id="escrowStatus"></p>
+    </div>
+
+    <!-- BOX 2: AI CHECK -->
+    <div class="card">
+      <h2>2. Freelancer Submit + AI Check</h2>
+      <textarea id="work" placeholder="Paste work link or description" rows="3"></textarea>
+      <button onclick="checkAI()">Check with AI Judge</button>
+      <p id="aiResult"></p>
+    </div>
+
+    <!-- BOX 3: RELEASE -->
+    <div class="card">
+      <h2>3. Release Payment</h2>
+      <button onclick="release()">Release from Smart Contract</button>
+      <p id="paymentStatus"></p>
+    </div>
+
+    <!-- REPUTATION -->
+    <div class="card rep-card">
+      <h2>⭐ Freelancer Reputation</h2>
+      <h1 id="rep">4.5</h1>
+      <p>Stored on Blockchain. Can't be faked.</p>
+    </div>
+
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
