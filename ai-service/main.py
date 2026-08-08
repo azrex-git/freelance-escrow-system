@@ -20,9 +20,36 @@ class DisputeRequest(BaseModel):
     freelancer_defense: str
     deliverables_text: str
 
+class EvaluateRequest(BaseModel):
+    work_description: str
+
 @app.get("/api/health")
 def health_check():
     return {"status": "AI Service is active and analyzing."}
+
+@app.post("/api/evaluate-work")
+def evaluate_work(request: EvaluateRequest):
+    try:
+        system_prompt = f"""
+        You are an AI Judge for a freelance platform.
+        Evaluate the following submitted work or link and determine its quality/completeness:
+        {request.work_description}
+        
+        Output ONLY a valid JSON object with no markdown formatting or extra text.
+        Format required:
+        {{
+            "match_percentage": <int 0-100>,
+            "feedback": "<short string explaining the evaluation>"
+        }}
+        """
+        response = model.generate_content(system_prompt)
+        
+        # Clean potential markdown from response if Gemini includes it
+        raw_text = response.text.replace('```json', '').replace('```', '').strip()
+        result = json.loads(raw_text)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/resolve-dispute")
 def resolve_dispute(request: DisputeRequest):

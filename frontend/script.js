@@ -87,18 +87,34 @@ async function checkAI() {
 
   setLoading('btn-ai', true);
 
-  // Simulate AI evaluation delay
-  setTimeout(() => {
-    const len = work.length;
-    if (len < 10) {
-      showMsg("aiResult", "🤖 AI Judge: Quality too low. REJECTED. 0% Payment", "error");
-    } else if (len < 30) {
-      showMsg("aiResult", "🤖 AI Judge: Partial requirements met. 50% Match.", "warning");
+  try {
+    const response = await fetch('/api/escrow/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ work_description: work })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const match = data.match_percentage || 0;
+      const feedback = data.feedback || "Evaluation complete.";
+      
+      if (match < 50) {
+        showMsg("aiResult", `🤖 AI Judge: ${match}% Match. ${feedback}`, "error");
+      } else if (match < 85) {
+        showMsg("aiResult", `🤖 AI Judge: ${match}% Match. ${feedback}`, "warning");
+      } else {
+        showMsg("aiResult", `🤖 AI Judge: ${match}% Match. ${feedback}`, "success");
+      }
     } else {
-      showMsg("aiResult", "🤖 AI Judge: Exceptional Quality! 98% Match. APPROVED.", "success");
+      showMsg("aiResult", "AI evaluation failed.", "error");
     }
+  } catch (err) {
+    console.error(err);
+    showMsg("aiResult", "Error connecting to AI service.", "error");
+  } finally {
     setLoading('btn-ai', false);
-  }, 1500);
+  }
 }
 
 async function release() {

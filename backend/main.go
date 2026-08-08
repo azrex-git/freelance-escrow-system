@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"log"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -41,6 +45,7 @@ func main() {
 	escrow := api.Group("/escrow")
 	escrow.Post("/", createEscrowHandler)
 	escrow.Get("/:id", getEscrowHandler)
+	escrow.Post("/evaluate", evaluateWorkHandler)
 	// Example endpoints to be implemented:
 	// escrow.Post("/:id/release", releaseFundsHandler)
 	// escrow.Post("/:id/dispute", raiseDisputeHandler)
@@ -65,6 +70,36 @@ func createEscrowHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Escrow created successfully",
 	})
+}
+
+type EvaluateRequest struct {
+	WorkDescription string `json:"work_description"`
+}
+
+func evaluateWorkHandler(c *fiber.Ctx) error {
+	var req EvaluateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	payloadBytes, err := json.Marshal(req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to encode request"})
+	}
+
+	resp, err := http.Post("http://localhost:8000/api/evaluate-work", "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to reach AI service"})
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read AI response"})
+	}
+
+	c.Set("Content-Type", "application/json")
+	return c.Send(body)
 }
 
 func getEscrowHandler(c *fiber.Ctx) error {
