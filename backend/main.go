@@ -6,8 +6,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
@@ -22,6 +24,7 @@ func main() {
 	// Middleware
 	app.Use(recover.New()) // Recover from panics to prevent the app from crashing
 	app.Use(logger.New())  // Log HTTP requests
+	app.Use(cors.New())    // Allow cross-origin requests
 
 	// Serve Frontend Static Files
 	app.Static("/", "../frontend")
@@ -87,9 +90,14 @@ func evaluateWorkHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to encode request"})
 	}
 
-	resp, err := http.Post("http://localhost:8000/api/evaluate-work", "application/json", bytes.NewBuffer(payloadBytes))
+	// Make HTTP POST request to Python AI Service with a timeout
+	client := &http.Client{
+		Timeout: 30 * time.Second, // 30 second timeout for Gemini AI
+	}
+	
+	resp, err := client.Post("http://localhost:8000/api/evaluate-work", "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to reach AI service"})
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "AI service is unreachable"})
 	}
 	defer resp.Body.Close()
 
@@ -98,6 +106,8 @@ func evaluateWorkHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read AI response"})
 	}
 
+	// Forward the exact status code from the Python AI Service
+	c.Status(resp.StatusCode)
 	c.Set("Content-Type", "application/json")
 	return c.Send(body)
 }

@@ -2,6 +2,7 @@ import os
 import json
 import google.generativeai as genai
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -12,6 +13,14 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel('gemini-1.5-pro')
 
 app = FastAPI(title="AntiLabs Escrow AI Arbiter")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class DisputeRequest(BaseModel):
     project_id: int
@@ -42,13 +51,16 @@ def evaluate_work(request: EvaluateRequest):
             "feedback": "<short string explaining the evaluation>"
         }}
         """
-        response = model.generate_content(system_prompt)
+        response = model.generate_content(
+            system_prompt,
+            generation_config={"response_mime_type": "application/json"}
+        )
         
-        # Clean potential markdown from response if Gemini includes it
-        raw_text = response.text.replace('```json', '').replace('```', '').strip()
-        result = json.loads(raw_text)
+        result = json.loads(response.text)
         return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/resolve-dispute")
@@ -71,7 +83,10 @@ def resolve_dispute(request: DisputeRequest):
         }}
         """
         
-        response = model.generate_content(system_prompt)
+        response = model.generate_content(
+            system_prompt,
+            generation_config={"response_mime_type": "application/json"}
+        )
         result = json.loads(response.text)
         
         freelancer_payout = (result["freelancer_percentage"] / 100) * request.milestone_amount
@@ -85,4 +100,6 @@ def resolve_dispute(request: DisputeRequest):
         }
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

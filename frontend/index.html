@@ -37,9 +37,9 @@
           <span class="currency">₹</span>
           <input type="number" id="amount" placeholder="0.00" min="0">
         </div>
-        <button class="btn btn-primary" onclick="deposit()" id="btn-deposit">
+        <button class="btn btn-primary" onclick="deposit()" id="btn-deposit" aria-label="Deposit funds into escrow">
           <span class="btn-text">Lock in Escrow</span>
-          <span class="loader hidden"></span>
+          <span class="loader hidden" aria-hidden="true"></span>
         </button>
         <div class="status-msg" id="escrowStatus"></div>
       </section>
@@ -51,9 +51,9 @@
         <p class="card-desc">Freelancer submits work. Our AI Judge reviews quality instantly.</p>
         
         <textarea id="work" placeholder="Paste GitHub link, document URL, or work description..." rows="4"></textarea>
-        <button class="btn btn-secondary" onclick="checkAI()" id="btn-ai">
+        <button class="btn btn-secondary" onclick="checkAI()" id="btn-ai" aria-label="Run AI Evaluation on work">
           <span class="btn-text">Run AI Evaluation</span>
-          <span class="loader hidden"></span>
+          <span class="loader hidden" aria-hidden="true"></span>
         </button>
         <div class="status-msg" id="aiResult"></div>
       </section>
@@ -64,9 +64,9 @@
         <h2>Release Payment</h2>
         <p class="card-desc">Funds are released upon approval, boosting reputation.</p>
         
-        <button class="btn btn-success" onclick="release()" id="btn-release">
+        <button class="btn btn-success" onclick="release()" id="btn-release" aria-label="Release payment from smart contract">
           <span class="btn-text">Release from Escrow</span>
-          <span class="loader hidden"></span>
+          <span class="loader hidden" aria-hidden="true"></span>
         </button>
         <div class="status-msg" id="paymentStatus"></div>
       </section>

@@ -94,8 +94,9 @@ async function checkAI() {
       body: JSON.stringify({ work_description: work })
     });
     
+    const data = await response.json().catch(() => ({}));
+
     if (response.ok) {
-      const data = await response.json();
       const match = data.match_percentage || 0;
       const feedback = data.feedback || "Evaluation complete.";
       
@@ -107,11 +108,12 @@ async function checkAI() {
         showMsg("aiResult", `🤖 AI Judge: ${match}% Match. ${feedback}`, "success");
       }
     } else {
-      showMsg("aiResult", "AI evaluation failed.", "error");
+      const errorMsg = data.detail || data.error || "AI evaluation failed due to server error.";
+      showMsg("aiResult", `Error: ${errorMsg}`, "error");
     }
   } catch (err) {
     console.error(err);
-    showMsg("aiResult", "Error connecting to AI service.", "error");
+    showMsg("aiResult", "Error connecting to AI service. Ensure server is running.", "error");
   } finally {
     setLoading('btn-ai', false);
   }
