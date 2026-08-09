@@ -8,6 +8,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -204,8 +205,12 @@ func main() {
 	reputationRoutes := api.Group("/reputation")
 	reputationRoutes.Get("/:userId", getReputationHandler)
 
-	log.Println("🛡️  SafeWork Anti-Ghosting Escrow running on :3000")
-	log.Fatal(app.Listen(":3000"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+	log.Printf("🛡️  SafeWork Anti-Ghosting Escrow running on :%s\n", port)
+	log.Fatal(app.Listen(":" + port))
 }
 
 // --- Handlers ---
