@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SafeWork - A secure, AI-powered freelance escrow system with blockchain reputation.">
-  <title>SafeWork | Web3 Escrow</title>
+  <meta name="description" content="SafeWork — Anti-Ghosting AI-Powered Freelance Escrow Platform with Reputation System">
+  <title>SafeWork | Anti-Ghosting Escrow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
 </head>
 <body>
   <div class="background-effects">
@@ -18,81 +17,268 @@
     <div class="glow-orb orb-3"></div>
   </div>
 
-  <div class="container">
-    <header class="header">
-      <div class="logo">
-        <span class="icon">🛡️</span>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-icon">🛡️</span>
         <h1>SafeWork</h1>
       </div>
-      <p class="subtitle">Trustless Escrow & AI Verification for Modern Freelance</p>
-    </header>
+      <p class="sidebar-tagline">Anti-Ghosting Escrow</p>
 
-    <main class="grid-layout">
-      <!-- Step 1: Deposit -->
-      <section class="glass-card" id="step-deposit">
-        <div class="step-badge">1</div>
-        <h2>Secure Funds</h2>
-        <p class="card-desc">Client deposits funds securely into the smart contract.</p>
-        
-        <div class="input-group">
-          <span class="currency">₹</span>
-          <input type="number" id="amount" placeholder="0.00" min="0">
-        </div>
-        <textarea id="clientRules" placeholder="Enter specific rules or acceptance criteria for the AI to enforce..." rows="3" style="margin-top: 10px; width: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; padding: 12px; font-family: inherit; font-size: 14px; margin-bottom: 15px;"></textarea>
-        <button class="btn btn-primary" onclick="deposit()" id="btn-deposit" aria-label="Deposit funds into escrow">
-          <span class="btn-text">Lock in Escrow</span>
-          <span class="loader hidden" aria-hidden="true"></span>
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
+          <span class="nav-icon">📊</span> Dashboard
         </button>
-        <div class="status-msg" id="escrowStatus"></div>
+        <button class="nav-btn" data-tab="new-project" onclick="switchTab('new-project')">
+          <span class="nav-icon">➕</span> New Project
+        </button>
+        <button class="nav-btn" data-tab="dispute" onclick="switchTab('dispute')">
+          <span class="nav-icon">⚖️</span> Dispute Center
+        </button>
+      </nav>
+
+      <!-- Reputation Panel -->
+      <div class="rep-panel">
+        <div class="rep-panel-header">
+          <span class="rep-label">Your Reputation</span>
+          <span class="trust-badge" id="trustBadge">Gold</span>
+        </div>
+        <div class="rep-score-row">
+          <span class="rep-star">⭐</span>
+          <span class="rep-number" id="repScore">0.0</span>
+          <span class="rep-max">/ 5.0</span>
+        </div>
+        <div class="rep-bar-container">
+          <div class="rep-bar-fill" id="repBarFill" style="width: 0%;"></div>
+        </div>
+        <div class="rep-stats">
+          <div class="rep-stat">
+            <span class="stat-num" id="statCompleted">0</span>
+            <span class="stat-label">Completed</span>
+          </div>
+          <div class="rep-stat">
+            <span class="stat-num" id="statDisputesWon">1</span>
+            <span class="stat-label">Won</span>
+          </div>
+          <div class="rep-stat">
+            <span class="stat-num" id="statDisputesLost">0</span>
+            <span class="stat-label">Lost</span>
+          </div>
+          <div class="rep-stat">
+            <span class="stat-num" id="statGhosting">0</span>
+            <span class="stat-label">Ghosted</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <!-- TAB: Dashboard -->
+      <section class="tab-content active" id="tab-dashboard">
+        <div class="page-header">
+          <h2>Project Dashboard</h2>
+          <p class="page-desc">Track active escrows, milestone progress, and ghosting alerts</p>
+        </div>
+
+        <div id="dashboardEmpty" class="empty-state">
+          <div class="empty-icon">📦</div>
+          <h3>No Active Projects</h3>
+          <p>Create your first project to start tracking milestones.</p>
+          <button class="btn btn-primary" onclick="switchTab('new-project')" style="width: auto; padding: 0.8rem 2rem;">
+            <span class="btn-text">Create Project</span>
+          </button>
+        </div>
+
+        <div id="dashboardProjects" class="projects-grid"></div>
       </section>
 
-      <!-- Step 2: AI Check -->
-      <section class="glass-card" id="step-ai">
-        <div class="step-badge">2</div>
-        <h2>Submit & Verify</h2>
-        <p class="card-desc">Freelancer submits work. Our AI Judge reviews quality instantly.</p>
-        
-        <textarea id="work" placeholder="Paste GitHub link, document URL, or work description..." rows="4"></textarea>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px; margin-top: 5px;">Optional: Upload code or text file for deep AI analysis.</p>
-        <input type="file" id="fileUpload" style="margin-bottom: 15px; width: 100%; color: var(--text-muted); font-size: 14px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
-        <button class="btn btn-secondary" onclick="checkAI()" id="btn-ai" aria-label="Run AI Evaluation on work">
-          <span class="btn-text">Run AI Evaluation</span>
-          <span class="loader hidden" aria-hidden="true"></span>
-        </button>
-        <div class="status-msg" id="aiResult"></div>
+      <!-- TAB: New Project -->
+      <section class="tab-content" id="tab-new-project">
+        <div class="page-header">
+          <h2>Create New Project</h2>
+          <p class="page-desc">Use AI to auto-plan milestones with deadlines, then lock funds in escrow</p>
+        </div>
+
+        <div class="create-flow">
+          <!-- Step 1: AI Planning -->
+          <div class="glass-card" id="planCard">
+            <div class="card-step"><span class="step-num">1</span> AI Project Planner</div>
+            <div class="form-group">
+              <label>Project Name</label>
+              <input type="text" id="projectName" placeholder="e.g. E-Commerce Website Redesign">
+            </div>
+            <div class="form-group">
+              <label>Describe the Project</label>
+              <textarea id="projectIdea" placeholder="Describe what you need built in detail. The AI will break it into milestones with budgets and deadlines..." rows="3"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="flex:1;">
+                <label>Total Budget (₹)</label>
+                <input type="number" id="totalBudget" placeholder="50000" min="0">
+              </div>
+              <button class="btn btn-primary" onclick="autoPlan()" id="btn-autoplan" style="flex:1; align-self: flex-end;">
+                <span class="btn-text">✨ Generate Milestones</span>
+                <span class="loader hidden"></span>
+              </button>
+            </div>
+            <div id="planResult" class="plan-result hidden"></div>
+          </div>
+
+          <!-- Step 2: Review & Lock -->
+          <div class="glass-card hidden" id="lockCard">
+            <div class="card-step"><span class="step-num">2</span> Review & Lock Escrow</div>
+            <div id="milestonesPreview" class="milestones-preview"></div>
+            <button class="btn btn-success" onclick="lockEscrow()" id="btn-lock">
+              <span class="btn-text">🔒 Lock All Funds in Escrow</span>
+              <span class="loader hidden"></span>
+            </button>
+            <div class="status-msg" id="lockStatus"></div>
+          </div>
+        </div>
       </section>
 
-      <!-- Step 3: Release -->
-      <section class="glass-card" id="step-release">
-        <div class="step-badge">3</div>
-        <h2>Release Payment</h2>
-        <p class="card-desc">Funds are released upon approval, boosting reputation.</p>
-        
-        <button class="btn btn-success" onclick="release()" id="btn-release" aria-label="Release payment from smart contract">
-          <span class="btn-text">Release from Escrow</span>
-          <span class="loader hidden" aria-hidden="true"></span>
-        </button>
-        <div class="status-msg" id="paymentStatus"></div>
-      </section>
+      <!-- TAB: Dispute Center -->
+      <section class="tab-content" id="tab-dispute">
+        <div class="page-header">
+          <h2>AI Dispute Center</h2>
+          <p class="page-desc">Raise a dispute and let our AI Arbiter analyze evidence to determine a fair resolution</p>
+        </div>
 
-      <!-- Reputation Dashboard -->
-      <section class="glass-card rep-card">
-        <div class="rep-header">
-          <h2>Reputation Score</h2>
-          <span class="blockchain-tag">Verified on Chain</span>
+        <div class="dispute-layout">
+          <div class="glass-card">
+            <div class="card-step"><span class="step-num" style="background: rgba(239,68,68,0.2); color: #f87171;">⚖️</span> File a Dispute</div>
+            
+            <div class="form-group">
+              <label>Select Project</label>
+              <select id="disputeEscrowSelect" onchange="loadDisputeMilestones()">
+                <option value="">— Select an active escrow —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Select Milestone</label>
+              <select id="disputeMilestoneSelect">
+                <option value="">— Select a milestone —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Client's Complaint</label>
+              <textarea id="clientComplaint" placeholder="Describe what went wrong from the client's perspective..." rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Freelancer's Defense</label>
+              <textarea id="freelancerDefense" placeholder="Freelancer's side of the story..." rows="3"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="flex:1">
+                <label>Communication Logs</label>
+                <textarea id="commLogs" placeholder="Paste relevant messages..." rows="2"></textarea>
+              </div>
+              <div class="form-group" style="flex:1">
+                <label>Delivery Timeline</label>
+                <input type="text" id="timelineContext" placeholder="e.g. 3 days late, no response for 5 days">
+              </div>
+            </div>
+            <button class="btn btn-danger" onclick="raiseDispute()" id="btn-dispute">
+              <span class="btn-text">⚖️ Submit to AI Arbiter</span>
+              <span class="loader hidden"></span>
+            </button>
+            <div class="status-msg" id="disputeStatus"></div>
+          </div>
+
+          <!-- AI Verdict Panel -->
+          <div class="glass-card hidden" id="verdictCard">
+            <div class="card-step"><span class="step-num" style="background: rgba(56,189,248,0.2); color: #38bdf8;">🤖</span> AI Arbiter Verdict</div>
+            
+            <div class="verdict-header">
+              <div class="confidence-ring" id="confidenceRing">
+                <svg viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" class="ring-bg"/>
+                  <circle cx="50" cy="50" r="45" class="ring-fill" id="ringFill"/>
+                </svg>
+                <span class="ring-text" id="ringText">85%</span>
+              </div>
+              <div class="verdict-meta">
+                <h3>Confidence Score</h3>
+                <p id="verdictGhosting" class="ghosting-tag hidden">👻 Ghosting Detected</p>
+              </div>
+            </div>
+
+            <div class="split-visual">
+              <div class="split-label">Payout Split</div>
+              <div class="split-bar-track">
+                <div class="split-bar-client" id="splitBarClient" style="width:50%"></div>
+                <div class="split-bar-freelancer" id="splitBarFreelancer" style="width:50%"></div>
+              </div>
+              <div class="split-amounts">
+                <span id="splitClientAmt" class="split-client-text">Client: ₹0</span>
+                <span id="splitFreelancerAmt" class="split-freelancer-text">Freelancer: ₹0</span>
+              </div>
+            </div>
+
+            <div class="verdict-reasoning" id="verdictReasoning"></div>
+
+            <div class="evidence-cards" id="evidenceCards"></div>
+
+            <div class="behavioral-section" id="behavioralSection">
+              <h4>Behavioral Analysis</h4>
+              <div class="behavioral-bars">
+                <div class="beh-bar-group">
+                  <span class="beh-label">Client Professionalism</span>
+                  <div class="beh-bar-track"><div class="beh-bar-fill client-bar" id="behClientBar" style="width:70%"></div></div>
+                  <span class="beh-score" id="behClientScore">70</span>
+                </div>
+                <div class="beh-bar-group">
+                  <span class="beh-label">Freelancer Professionalism</span>
+                  <div class="beh-bar-track"><div class="beh-bar-fill freelancer-bar" id="behFreelancerBar" style="width:60%"></div></div>
+                  <span class="beh-score" id="behFreelancerScore">60</span>
+                </div>
+              </div>
+              <p class="tone-summary" id="toneSummary"></p>
+            </div>
+
+            <button class="btn btn-primary" onclick="executeDispute()" id="btn-execute-dispute">
+              <span class="btn-text">✅ Accept & Execute Verdict</span>
+              <span class="loader hidden"></span>
+            </button>
+          </div>
         </div>
-        <div class="score-display">
-          <span class="star">⭐</span>
-          <h1 id="rep">4.5</h1>
-          <span class="max-score">/ 5.0</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="rep-progress" style="width: 90%;"></div>
-        </div>
-        <p class="rep-footer">Top 10% Freelancer</p>
       </section>
     </main>
   </div>
+
+  <!-- Submit Work Modal -->
+  <div class="modal-overlay hidden" id="submitModal">
+    <div class="glass-card modal-content">
+      <div class="page-header" style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.4rem;">Submit Deliverables</h2>
+        <p class="page-desc">Provide your work and notes for AI evaluation.</p>
+      </div>
+      
+      <div class="form-group">
+        <label>GitHub Repository / Deliverable Link</label>
+        <div class="file-upload-mock">
+          <input type="text" id="submitFileName" placeholder="e.g. https://github.com/username/repo/commit/..." style="font-family: monospace;">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Progress Report / Coverage Notes</label>
+        <textarea id="submitNote" placeholder="Explain exactly how much work is finished. List the specific requirements you covered so the AI Arbiter can evaluate partial or full delivery..." rows="5"></textarea>
+      </div>
+      
+      <div class="form-row" style="margin-top: 2rem;">
+        <button class="btn btn-secondary" onclick="closeSubmitModal()" style="flex: 1;">Cancel</button>
+        <button class="btn btn-primary" id="btn-submit-work" style="flex: 1;">
+          <span class="btn-text">🚀 Submit Work</span>
+          <span class="loader hidden"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>

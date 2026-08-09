@@ -113,4 +113,7 @@ contract FreelanceEscrow {
         if (!hasReputation[user]) return 50;
         return reputation[user];
     }
+
+    // Allow contract to receive ETH
+    receive() external payable {}
 }
