@@ -86,7 +86,7 @@ def generate_milestones(request: ProjectIdeaRequest):
             }}
             """
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-1.5-flash',
                 contents=system_prompt,
                 config=genai.types.GenerateContentConfig(
                     response_mime_type="application/json"
@@ -177,7 +177,7 @@ def evaluate_work(request: EvaluateRequest):
             }}
             """
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-1.5-flash',
                 contents=system_prompt,
                 config=genai.types.GenerateContentConfig(
                     response_mime_type="application/json"
@@ -258,7 +258,7 @@ def resolve_dispute(request: DisputeRequest):
             """
             
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-1.5-flash',
                 contents=system_prompt,
                 config=genai.types.GenerateContentConfig(
                     response_mime_type="application/json"
@@ -360,7 +360,7 @@ def ghosting_analysis(request: GhostingAnalysisRequest):
             """
             
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-1.5-flash',
                 contents=system_prompt,
                 config=genai.types.GenerateContentConfig(
                     response_mime_type="application/json"
