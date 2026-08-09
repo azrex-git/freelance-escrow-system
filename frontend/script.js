@@ -1,4 +1,5 @@
 // ==================== STATE ====================
+const API_BASE_URL = 'https://freelance-escrow-system-backend.onrender.com';
 let currentUser = 'client1';
 let escrowsCache = [];
 let planMilestones = [];
@@ -14,7 +15,7 @@ window.addEventListener('load', async () => {
 function switchTab(tabName) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  
+
   document.getElementById(`tab-${tabName}`).classList.add('active');
   document.querySelector(`.nav-btn[data-tab="${tabName}"]`).classList.add('active');
 
@@ -43,7 +44,7 @@ const setLoading = (btnId, loading) => {
 // ==================== REPUTATION ====================
 async function refreshReputation() {
   try {
-    const res = await fetch(`/api/reputation/${currentUser}`);
+    const res = await fetch(API_BASE_URL + `/api/reputation/${currentUser}`);
     if (!res.ok) return;
     const data = await res.json();
 
@@ -69,10 +70,10 @@ async function refreshReputation() {
 // ==================== DASHBOARD ====================
 async function refreshDashboard() {
   try {
-    const res = await fetch('/api/escrow/all');
+    const res = await fetch(API_BASE_URL + '/api/escrow/all');
     if (!res.ok) return;
     escrowsCache = await res.json();
-    
+
     const container = document.getElementById('dashboardProjects');
     const empty = document.getElementById('dashboardEmpty');
 
@@ -81,7 +82,7 @@ async function refreshDashboard() {
       container.innerHTML = '';
       return;
     }
-    
+
     empty.classList.add('hidden');
     container.innerHTML = escrowsCache.map(e => renderProjectCard(e)).join('');
   } catch (e) {
@@ -119,7 +120,7 @@ function renderProjectCard(escrow) {
       } else if (hoursLeft < 24) {
         deadlineMeta = `<span style="color:#fbbf24">⏰ ${Math.round(hoursLeft)}h left</span>`;
       } else {
-        deadlineMeta = `<span>📅 ${Math.round(hoursLeft/24)}d left</span>`;
+        deadlineMeta = `<span>📅 ${Math.round(hoursLeft / 24)}d left</span>`;
       }
     }
 
@@ -189,15 +190,15 @@ function closeSubmitModal() {
 
 document.getElementById('btn-submit-work').addEventListener('click', async () => {
   if (!activeSubmitEscrow || !activeSubmitMilestone) return;
-  
+
   const fileName = document.getElementById('submitFileName').value.trim();
   const note = document.getElementById('submitNote').value.trim();
-  
+
   if (!note && !fileName) {
     alert("Please provide some notes or a file name.");
     return;
   }
-  
+
   let workPayload = note;
   if (fileName) {
     workPayload = `File Attached: [${fileName}]\n\nNotes:\n${note}`;
@@ -205,7 +206,7 @@ document.getElementById('btn-submit-work').addEventListener('click', async () =>
 
   setLoading('btn-submit-work', true);
   try {
-    const res = await fetch(`/api/escrow/${activeSubmitEscrow}/milestone/${activeSubmitMilestone}/submit`, {
+    const res = await fetch(API_BASE_URL + `/api/escrow/${activeSubmitEscrow}/milestone/${activeSubmitMilestone}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ submitted_work: workPayload })
@@ -229,10 +230,10 @@ async function approveMilestone(escrowId, milestoneId) {
     btn.disabled = true;
     btn.innerText = '⏳ Approving...';
 
-    const res = await fetch(`/api/escrow/${escrowId}/milestone/${milestoneId}/approve`, {
+    const res = await fetch(API_BASE_URL + `/api/escrow/${escrowId}/milestone/${milestoneId}/approve`, {
       method: 'POST'
     });
-    
+
     if (res.ok) {
       await refreshDashboard();
     }
@@ -247,10 +248,10 @@ async function rejectMilestone(escrowId, milestoneId) {
     btn.disabled = true;
     btn.innerText = '⏳ Rejecting...';
 
-    const res = await fetch(`/api/escrow/${escrowId}/milestone/${milestoneId}/reject`, {
+    const res = await fetch(API_BASE_URL + `/api/escrow/${escrowId}/milestone/${milestoneId}/reject`, {
       method: 'POST'
     });
-    
+
     if (res.ok) {
       alert("Milestone rejected! Please go to the Dispute Center to resolve this.");
       await refreshDashboard();
@@ -262,7 +263,7 @@ async function rejectMilestone(escrowId, milestoneId) {
 
 async function releaseMilestone(escrowId, milestoneId) {
   try {
-    const res = await fetch(`/api/escrow/${escrowId}/milestone/${milestoneId}/release`, {
+    const res = await fetch(API_BASE_URL + `/api/escrow/${escrowId}/milestone/${milestoneId}/release`, {
       method: 'POST'
     });
     if (res.ok) {
@@ -287,7 +288,7 @@ async function autoPlan() {
   setLoading('btn-autoplan', true);
 
   try {
-    const res = await fetch('/api/escrow/auto-plan', {
+    const res = await fetch(API_BASE_URL + '/api/escrow/auto-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ project_description: idea, total_budget: budget })
@@ -344,7 +345,7 @@ async function lockEscrow() {
   setLoading('btn-lock', true);
 
   try {
-    const res = await fetch('/api/escrow', {
+    const res = await fetch(API_BASE_URL + '/api/escrow', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -362,8 +363,8 @@ async function lockEscrow() {
 
     if (res.ok) {
       const data = await res.json();
-      showMsg('lockStatus', `🔒 Escrow locked! ${data.milestones.length} milestones secured. ID: ${data.id.substring(0,8)}...`, 'success');
-      
+      showMsg('lockStatus', `🔒 Escrow locked! ${data.milestones.length} milestones secured. ID: ${data.id.substring(0, 8)}...`, 'success');
+
       // Reset form
       planMilestones = [];
       document.getElementById('projectName').value = '';
@@ -394,7 +395,7 @@ function populateDisputeDropdown() {
   select.innerHTML = '<option value="">— Select an active escrow —</option>';
   escrowsCache.forEach(e => {
     if (e.status === 'active' || e.status === 'disputed') {
-      select.innerHTML += `<option value="${e.id}">${e.project_name || e.id.substring(0,8)} — ₹${e.total_amount.toLocaleString()}</option>`;
+      select.innerHTML += `<option value="${e.id}">${e.project_name || e.id.substring(0, 8)} — ₹${e.total_amount.toLocaleString()}</option>`;
     }
   });
 }
@@ -438,7 +439,7 @@ async function raiseDispute() {
     const escrow = escrowsCache.find(e => e.id === escrowId);
     const milestone = escrow?.milestones.find(m => m.id === milestoneId);
 
-    const res = await fetch(`/api/escrow/${escrowId}/dispute`, {
+    const res = await fetch(API_BASE_URL + `/api/escrow/${escrowId}/dispute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -526,10 +527,10 @@ function renderVerdict(data, escrow) {
 
 async function executeDispute() {
   setLoading('btn-execute-dispute', true);
-  
+
   try {
     showMsg('disputeStatus', '✅ Dispute verdict executed. Funds dispersed and reputations updated.', 'success');
-    
+
     await refreshDashboard();
     await refreshReputation();
     populateDisputeDropdown();

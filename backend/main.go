@@ -221,7 +221,7 @@ func autoPlanHandler(c *fiber.Ctx) error {
 
 	payloadBytes, _ := json.Marshal(req)
 	client := &http.Client{Timeout: 45 * time.Second}
-	resp, err := client.Post("http://localhost:8000/api/generate-milestones", "application/json", bytes.NewBuffer(payloadBytes))
+	resp, err := client.Post("https://freelance-escrow-system.onrender.com/api/generate-milestones", "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "AI service unreachable"})
 	}
@@ -507,7 +507,7 @@ func resolveDisputeHandler(c *fiber.Ctx) error {
 	payloadBytes, _ := json.Marshal(aiReq)
 
 	client := &http.Client{Timeout: 45 * time.Second}
-	resp, err := client.Post("http://localhost:8000/api/resolve-dispute", "application/json", bytes.NewBuffer(payloadBytes))
+	resp, err := client.Post("https://freelance-escrow-system.onrender.com/api/resolve-dispute", "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "AI service unreachable"})
 	}
