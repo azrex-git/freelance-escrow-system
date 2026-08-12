@@ -400,5 +400,19 @@ def ghosting_analysis(request: GhostingAnalysisRequest):
 
 if __name__ == "__main__":
     import uvicorn
+    import threading
+    import time
+    import urllib.request
+
+    def keep_alive():
+        while True:
+            time.sleep(14 * 60)
+            try:
+                urllib.request.urlopen("https://freelance-escrow-system.onrender.com/api/health", timeout=10)
+            except Exception:
+                pass
+
+    threading.Thread(target=keep_alive, daemon=True).start()
+
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)

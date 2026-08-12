@@ -209,6 +209,19 @@ func main() {
 	if port == "" {
 		port = "3000"
 	}
+
+	// Keep-alive ping to prevent Render from sleeping
+	go func() {
+		for {
+			time.Sleep(14 * time.Minute)
+			client := &http.Client{Timeout: 10 * time.Second}
+			resp, err := client.Get("https://freelance-escrow-system-backend.onrender.com/api/health")
+			if err == nil {
+				resp.Body.Close()
+			}
+		}
+	}()
+
 	log.Printf("🛡️  SafeWork Anti-Ghosting Escrow running on :%s\n", port)
 	log.Fatal(app.Listen(":" + port))
 }

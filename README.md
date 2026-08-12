@@ -1,5 +1,7 @@
 # SafeWork: Reputation-Weighted Freelance Escrow
 
+**Live Demo:** [https://freelance-escrow-system.vercel.app](https://freelance-escrow-system.vercel.app)
+
 SafeWork is a milestone-based escrow platform designed to eliminate payment disputes, scope creep, and "ghosting" in freelance work. It leverages AI for automated dispute resolution and maintains a strict reputation system to ensure both clients and freelancers are held accountable.
 
 This project was built to address the trust deficit in freelance marketplaces by ensuring funds are secured before work begins and payments are released only when milestones are completed.
@@ -36,6 +38,11 @@ If a party goes completely silent past a deadline, the system flags the project 
 
 ### Permanent Reputation System
 Every action on the platform impacts a user's Trust Tier. Successfully completing milestones incrementally increases reputation. Paying out on time increases client reputation. Disputes and ghosting heavily damage a user's score. Trust Tiers range from "Newcomer" up to "Elite", ensuring high-quality actors are easily identifiable.
+
+- You earn +0.25 stars for successfully releasing a milestone (steady progress).
+- You earn a massive +0.5 star bonus for successfully completing an entire multi-milestone project without disputes.
+- Clients get a small bump (+0.15) just for paying on time to encourage good behavior.
+- But if you lose a dispute or get caught ghosting by the AI Arbiter, you will lose up to -0.3 stars immediately.
 
 ## Running Locally
 
